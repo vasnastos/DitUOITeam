@@ -222,6 +222,9 @@ class CityProblem:
             random.shuffle(route)
         self.save_solutions()
 
+class Scheduler:
+    pass
+
 
 if __name__=='__main__':
     # CityProblem.set_save_folder(os.path.join('','solutions'))
