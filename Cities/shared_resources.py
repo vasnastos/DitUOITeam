@@ -186,7 +186,7 @@ class AutoGitHandler:
     def git_push(self):    
         for cmd in [
             f"git add {' '.join(self.target_folders)}",
-            f"git commit -m solutions_{socket.gethostname()}_{cpuinfo.get_cpu_info()['brand_raw'].replace(' ','_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            f"git commit -m solutions_{socket.gethostname()}_{cpuinfo.get_cpu_info()['brand_raw'].replace(' ','_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "git push"
         ]:
             self.logger.info(f'Command execute:{cmd}')
