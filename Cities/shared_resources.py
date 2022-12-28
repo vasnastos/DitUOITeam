@@ -4,13 +4,12 @@ import platform
 import socket,logging
 import shutil, random, math
 from tabulate import tabulate
-import shutil
+import shutil,yaml,time
 
 
 class AutoGitHandler:
-    def __init__(self,github_username,github_password):   
-        self.username=github_username
-        self.password=github_password
+    def __init__(self):   
+        self.username=None
         self.instances=list()
         self.results=list()
         self.split_token=None
@@ -31,6 +30,11 @@ class AutoGitHandler:
         self.target_folders.append(target_folder)
 
     def configure(self,**args):
+        if args.get("username",None):
+            self.username=args.get("username")
+        else:
+            raise ValueError("User name does not setted\nPlease provide a username")
+
         if args.get('instances','None.f')!='None.f':
             self.filepath=args.get('instances')
             self.instances=os.listdir(self.filepath)
@@ -79,6 +83,32 @@ class AutoGitHandler:
             ["Objective_position",self.objective_position],
             ["Best solutions",self.best_solutions]
         ],headers=["Configuration item","Value"],tablefmt='fancy_grid'),end='\n')
+
+    def configure_via_file(self,path_to_configurations):
+        RF=open(path_to_configurations,'r')
+        configurations=yaml.load(RF,Loader=yaml.FullLoader)
+        RF.close()
+
+        excluded=False
+        for config_key in ['username','root','instances','results','split_token','objective_position','email']:
+            if config_key not in list(configurations.keys()):
+                self.logger.info(f"Configurations key missed:{config_key}")
+                excluded=True
+
+        if excluded:
+            raise "Configuration file does not filled correctly"
+
+        self.username=configurations['username']
+        self.root_folder=configurations['root']
+        self.instances=configurations['instances']
+        self.results=configurations['results']
+        self.split_token=configurations['split_token']
+        self.objective_position=configurations['objective_position']
+        self.user_email=configurations['email']
+
+        if 'target' in list(configurations.keys()):
+            self.target_folders=configurations['target']
+
 
     def git_best(self):
         best_solutions=dict()
@@ -155,8 +185,8 @@ class AutoGitHandler:
 
     def git_push(self):    
         for cmd in [
-            f"git add {self.results}",
-            f"git commit -m update_results_{socket.gethostname()}_{platform.processor()}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            f"git add {' '.join(self.target_folders)}",
+            f"git commit -m solutions_{socket.gethostname()}_{platform.processor()}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
             "git push"
         ]:
             self.logger.info(f'Command execute:{cmd}')
@@ -164,75 +194,26 @@ class AutoGitHandler:
 
         self.logger.info("========== Uploaded finished ==========",end='\n\n')
 
-class CityProblem:
-    path_to_results=""
-    path_to_datasets=os.path.join('','datasets')
 
-    @staticmethod
-    def set_save_folder(folder_name):
-        CityProblem.path_to_results=folder_name
-
-    def __init__(self):
-        self.routes=dict()
+def solve():
+    from city import Problem
+    Problem.set_save_folder(os.path.join(os.getcwd(),'solutions'))
+    cityProblem=Problem()
+    cityProblem.load_routes()
     
-    def create_routes(self):
-        with open(os.path.join('','cities.txt'),'r') as RF:
-            for line in RF:
-                x,y=tuple([float(coord) for coord in line.split()])
-                self.cities.append((x,y))
-        self.routes=self.travel_plan(10)
-        self.save_datasets()
-        self.save_solutions()
-    
-    def load_routes(self):
-        for dataset_name in os.listdir(CityProblem.path_to_datasets):
-            with open(os.path.join(CityProblem.path_to_datasets,dataset_name),'r') as RF:
-                route=list()
-                for line in RF:
-                    route.append(tuple([float(x) for x in line.split()]))
-                self.routes[dataset_name.removesuffix('.in')]=route
-
-    def travel_plan(self,number_of_routes):
-        return {f'rnd_city_{index}':[self.cities[random.randint(0,len(self.cities)-1)] for _ in range(10)] for index in range(number_of_routes)}
-    
-    
-    def compute_cost(self,solution):
-        distance=0
-        for i in range(len(solution)-1):
-            x,y=solution[i]
-            x2,y2=solution[i+1]
-            distance+=math.sqrt(math.pow(x-x2,2)+math.pow(y-y2,2))
-        return distance
-        
-    def save_solutions(self):
-        for name,travel_route in self.routes.items():
-            with open(os.path.join(CityProblem.path_to_results,f'{name}_{self.compute_cost(travel_route)}_{datetime.now().strftime("%Y%m%d%H%M%S")}.sol'),'w') as WF:
-                for i,(x,y) in enumerate(travel_route):
-                    WF.write(f'City {i+1}:({x},{y})\n')
-                WF.write(f'Driving cost:{self.compute_cost(travel_route)}\n')
-
-    def save_datasets(self):
-        for name,travel_route in self.routes.items():
-            with open(os.path.join('','datasets',f'{name}.in'),'w') as WF:
-                for (x,y) in travel_route:
-                    WF.write(f'{x} {y}\n')
-    
-    def shuffle_routes(self):
-        for _,route in self.routes.items():
-            random.shuffle(route)
-        self.save_solutions()
-
-class Scheduler:
-    pass
+    for instance,solution in cityProblem.routes.items():
+        for _ in range(3):
+            new_solution=solution.copy()
+            random.shuffle(new_solution)
+            cityProblem.add_solution(instance,new_solution)
+    cityProblem.save_solutions()
 
 
 if __name__=='__main__':
-    # CityProblem.set_save_folder(os.path.join('','solutions'))
-    # problem=CityProblem()
-    # problem.generate10_routes()
-    # problem.save_solutions()
-    # problem.save_datasets()
-    
-    handler=AutoGitHandler("vasnastos","basilis99")
-    handler.configure(instances=os.path.join(os.getcwd(),'datasets'),results=os.path.join(os.getcwd(),'solutions'),root=os.getcwd(),split_token="_",objective_position=2,email="nastosvasileios99@gmail.com")
+    handler=AutoGitHandler()
+    handler.configure(username="vasnastos",instances=os.path.join(os.getcwd(),'datasets'),results=os.path.join(os.getcwd(),'solutions'),root=os.getcwd(),split_token="_",objective_position=2,email="nastosvasileios99@gmail.com")
+    handler.add_target_folder(os.path.join('','solutions'))
     handler.git_pull()
+
+    solve()
+    handler.git_push()

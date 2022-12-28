@@ -1,7 +1,3 @@
-# DitUOITeam
-
-* Schedule jobs using python library schedule
-```
 import schedule,time
 
 def job():
@@ -14,6 +10,3 @@ if __name__=='__main__':
         schedule.run_pending()
         time.sleep(15)
         print(f'Job executed:{time.time()-current}\'s')
-```
-
-
