@@ -4,10 +4,28 @@ import platform
 import socket,logging
 import shutil, random, math
 from tabulate import tabulate
-import shutil,yaml,time,cpuinfo
+import shutil,yaml,time,cpuinfo,threading
 
 
 class AutoGitHandler:
+    __singleton_handler__=None
+    _locker=threading.Locker()
+    path_to_configurations=None
+
+    @staticmethod
+    def change_path_to_config(new_path):
+        AutoGitHandler.path_to_configurations=new_path
+
+    @classmethod
+    def instance(cls):
+        if cls.__singleton_handler__==None:
+            with cls._locker:
+                cls.__singleton_handler__=cls()
+                cls.__singleton_handler__.configure_via_file(cls.path_to_configurations)
+        
+        return cls.__singleton_handler__
+
+
     def __init__(self):   
         self.username=None
         self.instances=list()
