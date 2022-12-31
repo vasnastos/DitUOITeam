@@ -25,9 +25,10 @@ class Problem:
     def load_routes(self):
         self.solutions={}
         for dataset_name in os.listdir(Problem.path_to_datasets):
+            print(dataset_name)
             with open(os.path.join(Problem.path_to_datasets,dataset_name),'r') as RF:
-                self.routes[dataset_name.removesuffix('.in')]=[tuple([float(x) for x in line.split()]) for line in RF]
-                self.solutions[dataset_name.removesuffix('.in')]=list()
+                self.routes[dataset_name.replace('.in','')]=[tuple([float(x) for x in line.split()]) for line in RF]
+                self.solutions[dataset_name.replace('.in','')]=list()
 
     def compute_cost(self,solution):
         distance=0

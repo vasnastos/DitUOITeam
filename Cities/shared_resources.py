@@ -19,7 +19,7 @@ class AutoGitHandler:
         self.best_solutions=None
         self.target_folders=list()
 
-        self.logger=logging.getLogger("Solution Validator")
+        self.logger=logging.getLogger("Repo Controller")
         self.logger.setLevel(logging.INFO)
         formatter=logging.Formatter('%(asctime)s %(message)s')
         sh=logging.StreamHandler()
@@ -211,8 +211,9 @@ def solve():
 
 if __name__=='__main__':
     handler=AutoGitHandler()
-    handler.configure(username="vasnastos",instances=os.path.join(os.getcwd(),'datasets'),results=os.path.join(os.getcwd(),'solutions'),root=os.getcwd(),split_token="_",objective_position=2,email="nastosvasileios99@gmail.com")
-    handler.add_target_folder(os.path.join('','solutions'))
+    # handler.configure(username="vasnastos",instances=os.path.join(os.getcwd(),'datasets'),results=os.path.join(os.getcwd(),'solutions'),root=os.getcwd(),split_token="_",objective_position=2,email="nastosvasileios99@gmail.com")
+    # handler.add_target_folder(os.path.join('','solutions'))
+    handler.configure_via_file(os.path.join('..','vasnastos_config.yaml'))
     handler.git_pull()
 
     solve()
