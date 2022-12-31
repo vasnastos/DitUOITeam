@@ -192,7 +192,7 @@ class AutoGitHandler:
             self.logger.info(f'Command execute:{cmd}')
             subprocess.call(cmd,shell=True)
 
-        self.logger.info("========== Uploaded finished ==========",end='\n\n')
+        self.logger.info("========== Uploaded finished ==========")
 
 
 def solve():
