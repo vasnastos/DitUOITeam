@@ -6,4 +6,4 @@ best_solutions: C:\Users\Vasileios Nastos\Desktop\Git\DitUOITeam\Cities\best
 split_token: _
 objective_position: 2
 root: C:\Users\Vasileios Nastos\Desktop\Git\DitUOITeam
-target: [C:\Users\Vasileios Nastos\Desktop\Git\DitUOITeam\Cities\solutions, C:\Users\Vasileios Nastos\Desktop\Git\DitUOITeam\Cities\best]
+target: [solutions, best]
